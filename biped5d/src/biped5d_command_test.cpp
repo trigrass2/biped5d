@@ -1,0 +1,66 @@
+#include <ros/ros.h>
+#include <std_msgs/Float64MultiArray.h>
+
+std_msgs::Float64MultiArray feedback;
+
+void subCallback(const std_msgs::Float64MultiArrayConstPtr &msg){
+    feedback = *msg;
+}
+
+int main(int argc, char *argv[])
+{
+    ros::init(argc, argv, "biped5d_test");
+    ros::NodeHandle nh;
+
+    ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/low_level/biped5d_descart_point_command",10);
+    ros::Subscriber sub = nh.subscribe("/low_level/biped5d_descartes_point", 10, subCallback);
+    while(ros::ok() && sub.getNumPublishers()<1){
+        ROS_INFO("topic Descartes_point not exist!!");
+        sleep(1);
+    }
+    std_msgs::Float64MultiArray command;
+    command.data.resize(17); 
+
+    feedback.data.resize(6); // X,Y,Z,Rx,Ry,Rz
+
+    // top position 
+    command.data[0] = 0.5;  // X unit(m)
+    command.data[1] = 0;    // Y
+    command.data[2] = 0;    // Z
+    command.data[3] = 0;    // RX  unit(deg)
+    command.data[4] = 0;    // RY
+    command.data[5] = 180;  // Rz
+
+    // actual joint position
+    command.data[6] = 0;    // I1    unit(rad)
+    command.data[7] = 0;    // T2
+    command.data[8] = 0;    // T3
+    command.data[9] = 0;    // T4
+    command.data[10] = 0;   // I5
+
+    // top velocity
+    command.data[11] = -0.01;   // X_v  unit(m/s)
+    command.data[12] = 0;       // Y_v
+    command.data[13] = 0;       // Z_v
+    command.data[14] = 0;       // Rx_v unit(deg/s)
+    command.data[15] = 0;       // Ry_v
+    command.data[16] = 0;       // Rz_v
+
+    ros::Rate timer(1);
+    while (ros::ok())
+    {
+        pub.publish(command);
+        
+        ROS_INFO("X:%.2f, Y:%.2f, Z:%.2f, Rx:%.2f, Ry:%.2f, Rz:%.2f,", \
+                feedback.data[0],feedback.data[1],feedback.data[2],feedback.data[3], \
+                feedback.data[4],feedback.data[5]);
+        
+        ros::spinOnce();
+        timer.sleep();
+    }
+    
+
+    return 0;
+}
+
+
