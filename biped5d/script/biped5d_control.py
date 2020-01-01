@@ -50,7 +50,7 @@ class Biped5d_control():
         sub = rospy.Subscriber("/low_level/biped5d_joint_command",Float64MultiArray,Biped5d_control.positive_value_callbacks)
         
         Biped5d_control.mutex.acquire()
-        # Biped5d_control.__start_communication()
+        Biped5d_control.__start_communication()
         Biped5d_control.mutex.release()
         Biped5d_control.joint_command.data = []
 
@@ -85,14 +85,14 @@ class Biped5d_control():
             if(if_new_value):
                 # rospy.loginfo("get joint data...")
                 Biped5d_control.mutex.acquire()
-                rospy.loginfo("--------------------")
-                for i in range(len(Biped5d_control.joint_command.data)):
-                    rospy.loginfo(str(round(Biped5d_control.joint_command.data[i],3)))
-                # Biped5d_control.I1.sent_position(round(Biped5d_control.joint_command.data[0],3),round(joint_command.data[5],3))
-                # Biped5d_control.T2.sent_position(round(Biped5d_control.joint_command.data[1],3),round(joint_command.data[6],3))
-                # Biped5d_control.T3.sent_position(round(Biped5d_control.joint_command.data[2],3),round(joint_command.data[7],3))
-                # Biped5d_control.T4.sent_position(round(Biped5d_control.joint_command.data[3],3),round(joint_command.data[8],3))
-                # Biped5d_control.I5.sent_position(round(Biped5d_control.joint_command.data[4],3),round(joint_command.data[9],3))
+                # rospy.loginfo("--------------------")
+                # for i in range(len(Biped5d_control.joint_command.data)):
+                #     rospy.loginfo(str(round(Biped5d_control.joint_command.data[i],3)))
+                Biped5d_control.I1.sent_position(round(Biped5d_control.joint_command.data[0],3),round(joint_command.data[5],3))
+                Biped5d_control.T2.sent_position(round(Biped5d_control.joint_command.data[1],3),round(joint_command.data[6],3))
+                Biped5d_control.T3.sent_position(round(Biped5d_control.joint_command.data[2],3),round(joint_command.data[7],3))
+                Biped5d_control.T4.sent_position(round(Biped5d_control.joint_command.data[3],3),round(joint_command.data[8],3))
+                Biped5d_control.I5.sent_position(round(Biped5d_control.joint_command.data[4],3),round(joint_command.data[9],3))
                 Biped5d_control.mutex.release()
                 if_new_value = False
 
@@ -111,34 +111,34 @@ class Biped5d_control():
             
             Biped5d_control.mutex.acquire()
 
-            # feedback = [round(Biped5d_control.I1.get_position(),3),\
-            #             round(Biped5d_control.T2.get_position(),3),\
-            #             round(Biped5d_control.T3.get_position(),3),\
-            #             round(Biped5d_control.T4.get_position(),3),\
-            #             round(Biped5d_control.I5.get_position(),3) ]
+            feedback = [round(Biped5d_control.I1.get_position(),3),\
+                        round(Biped5d_control.T2.get_position(),3),\
+                        round(Biped5d_control.T3.get_position(),3),\
+                        round(Biped5d_control.T4.get_position(),3),\
+                        round(Biped5d_control.I5.get_position(),3) ]
 
-            # feedback_publish.data.clear()
+            feedback_publish.data.clear()
             
-            # for i in range(len(feedback)):
-            #     feedback_publish.data.append(feedback[i])
-            # publisher.publish(feedback_publish)
-            # rospy.timer.sleep(0.02) # 20ms
-
-
-            ''' test code ''' 
-            test_feedback = [0,0.55,-1.1,0.55,0]
-            for i in range(len(test_feedback)):
-                feedback_publish.data.append(test_feedback[i])
+            for i in range(len(feedback)):
+                feedback_publish.data.append(feedback[i])
             publisher.publish(feedback_publish)
-
-            # rospy.loginfo("--------------------")
-            # for i in range(len(feedback_publish.data)):
-            #     rospy.loginfo(str(feedback_publish.data[i]))
-
-            feedback_publish.data = []
-            Biped5d_control.mutex.release()
             rospy.timer.sleep(0.02) # 20ms
-            ''' end '''
+
+
+            # ''' test code ''' 
+            # test_feedback = [0,0.55,-1.1,0.55,0]
+            # for i in range(len(test_feedback)):
+            #     feedback_publish.data.append(test_feedback[i])
+            # publisher.publish(feedback_publish)
+
+            # # rospy.loginfo("--------------------")
+            # # for i in range(len(feedback_publish.data)):
+            # #     rospy.loginfo(str(feedback_publish.data[i]))
+
+            # feedback_publish.data = []
+            # Biped5d_control.mutex.release()
+            # rospy.timer.sleep(0.02) # 20ms
+            # ''' end '''
 
         rospy.loginfo("task feedback end")
 
