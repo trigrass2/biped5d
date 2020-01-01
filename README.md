@@ -1,9 +1,11 @@
 # BirlModuleRobot
 
-BIRL 攀爬机器人控制软件
+BIRL 爬壁机器人控制
 
 **1. 安装通信驱动及相关依赖**
 ```
+cd
+mkdir -r ros/biped5d_robot/src/ && cd ~/ros/biped5d_robot/src/
 wget http://www.ixxat.com/docs/librariesprovider8/default-document-library/downloads/other-drivers/socketcan_1-1-92-0_20150508.zip?sfvrsn=10 
 unzip socketcan_1-1-92-0_20150508.zip?sfvrsn=10
 gedit README &
@@ -40,15 +42,18 @@ sudo pip install canopen
 
   *3.1 软件下载与环境配置*
 ```
-mkdir -r ros/modular_robot/src/ && cd ~/ros/modular_robot/src/ 
-git clone https://github.com/Jiongyu/BirlModuleRobot.git
-sudo echo "source ~/ros/modular_robot/devel/setup.bash">> ~/.bashrc
+cd ~/ros/biped5d_robot/src/ 
+git clone https://github.com/Jiongyu/biped5d.git
+sudo echo "source ~/ros/biped5d_robot/devel/setup.bash">> ~/.bashrc
 source ~/.bashrc
+
 ```
 
   *3.2 连接通信启动软件*
 ```
 rosrun canopen_communication can_prepare.sh
+
 roslaunch ui ui_start.launch
+
 ```
 
