@@ -18,9 +18,9 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "biped5d_command");
     ros::NodeHandle nh;
     ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/low_level/biped5d_joint_command", 10);
-    ros::Subscriber sub = nh.subscribe("/low_level/biped5d_descart_point_command", 10, subCallback);
+    ros::Subscriber sub = nh.subscribe("/low_level/biped5d_descart_command", 10, subCallback);
     while(ros::ok() && sub.getNumPublishers()<1){
-        ROS_INFO("topic Descartes_point not exist!!");
+        ROS_INFO("topic /low_level/biped5d_descart_command not exist!!");
         sleep(1);
     }
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     ros::Rate timer(5);
     while (ros::ok())
     {
-        shared = ros::topic::waitForMessage<std_msgs::Float64MultiArray>("/low_level/biped5d_descart_point_command",nh);
+        shared = ros::topic::waitForMessage<std_msgs::Float64MultiArray>("/low_level/biped5d_descart_command",nh);
         if(shared != NULL){
             request_descartes_point = *shared;
 
@@ -73,13 +73,13 @@ int main(int argc, char **argv)
             transmit_joint_list.data.push_back(new_joint_value[3] * PI_RAD);  //T4
             transmit_joint_list.data.push_back(new_joint_value[4] * PI_RAD);  //I5
 
-            // ROS_INFO("-----------");
-            // ROS_INFO("pos:");
-            // ROS_INFO("%.2f", transmit_joint_list.data[0]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[1]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[2]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[3]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[4]);
+            ROS_INFO("-----------");
+            ROS_INFO("pos:");
+            ROS_INFO("%.2f", transmit_joint_list.data[0]);
+            ROS_INFO("%.2f", transmit_joint_list.data[1]);
+            ROS_INFO("%.2f", transmit_joint_list.data[2]);
+            ROS_INFO("%.2f", transmit_joint_list.data[3]);
+            ROS_INFO("%.2f", transmit_joint_list.data[4]);
 
             Biped5d.Vel_IKine(new_joint_value,current_top_velocity,new_joint_velocity);
 
@@ -89,13 +89,13 @@ int main(int argc, char **argv)
             transmit_joint_list.data.push_back(fabs(new_joint_velocity[3]) * PI_RAD); //T4 velocity
             transmit_joint_list.data.push_back(fabs(new_joint_velocity[4]) * PI_RAD); //I5 velocity
 
-            // ROS_INFO("-----------");
-            // ROS_INFO("vel:");
-            // ROS_INFO("%.2f", transmit_joint_list.data[5]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[6]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[7]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[8]);
-            // ROS_INFO("%.2f", transmit_joint_list.data[9]);
+            ROS_INFO("-----------");
+            ROS_INFO("vel:");
+            ROS_INFO("%.2f", transmit_joint_list.data[5]);
+            ROS_INFO("%.2f", transmit_joint_list.data[6]);
+            ROS_INFO("%.2f", transmit_joint_list.data[7]);
+            ROS_INFO("%.2f", transmit_joint_list.data[8]);
+            ROS_INFO("%.2f", transmit_joint_list.data[9]);
 
             pub.publish(transmit_joint_list);    
             transmit_joint_list.data.clear(); 

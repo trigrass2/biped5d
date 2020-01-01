@@ -19,11 +19,11 @@ int main(int argc, char **argv)
     
     ros::init(argc, argv, "biped5d_feedback");
     ros::NodeHandle nh;
-    ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/low_level/biped5d_descartes_point", 1);
+    ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/low_level/biped5d_descartes_point", 5);
     ros::Subscriber sub = nh.subscribe("/low_level/biped5d_joint_point", 10, subCallback);
 
     while(ros::ok() && sub.getNumPublishers()<1){
-        ROS_INFO("Topic Joint_point not exist!!");
+        ROS_INFO("Topic /low_level/biped5d_joint_point not exist!!");
         sleep(1);
     }
     std_msgs::Float64MultiArray transmit_descartes_point;

@@ -19,10 +19,12 @@ class Biped5d_control():
     eds_file = RosPack().get_path('canopen_communication') + "/file/Copley.eds"
     mutex = threading.Lock()
     stop = False
+    joint_command = Float64MultiArray()
+
     
     def __init__(self):
 
-        rospy.init_node("biped5d_control",log_level=rospy.DEBUG)
+        rospy.init_node("biped5d_control", anonymous=True, log_level=rospy.DEBUG)
         # rospy.loginfo("Biped5d_control init")
 
         signal.signal(signal.SIGINT, Biped5d_control.__quit_muti_thread)
@@ -44,38 +46,38 @@ class Biped5d_control():
     def task_command(self):
         
         rospy.loginfo("task command start")
-        subscriber = rospy.Subscriber('/low_level/biped5d_joint_command',Float64MultiArray,Biped5d_control.positive_value_callbacks)
+        sub = rospy.Subscriber("/low_level/biped5d_joint_command",Float64MultiArray,Biped5d_control.positive_value_callbacks)
+        
         Biped5d_control.mutex.acquire()
         # Biped5d_control.__start_communication()
         Biped5d_control.mutex.release()
-        joint_command = Float64MultiArray()
-        joint_command.data = []
+        Biped5d_control.joint_command.data = []
 
         if_new_value = False
 
         while(not Biped5d_control.stop):
             try:
-                joint_command = rospy.wait_for_message('/low_level/biped5d_joint_command', Float64MultiArray,1) # 1s
+                rospy.wait_for_message('/low_level/biped5d_joint_command', Float64MultiArray, 5)
             except:
-                # rospy.loginfo("timeout.../low_level/biped5d_joint_command")
+                rospy.loginfo("timeout.../low_level/biped5d_joint_command")
                 pass
-            if joint_command.data:
+            if Biped5d_control.joint_command.data:
                 if_new_value = True
             
-            # to do 
             if if_new_value:
                 rospy.loginfo("get joint data...")
                 Biped5d_control.mutex.acquire()
-                for i in range(len(joint_command.data)):
-                    rospy.loginfo(str(round(joint_command.data[i],3)))
-                # Biped5d_control.I1.sent_position(round(joint_command.data[0],3),round(joint_command.data[5],3))
-                # Biped5d_control.T2.sent_position(round(joint_command.data[1],3),round(joint_command.data[6],3))
-                # Biped5d_control.T3.sent_position(round(joint_command.data[2],3),round(joint_command.data[7],3))
-                # Biped5d_control.T4.sent_position(round(joint_command.data[3],3),round(joint_command.data[8],3))
-                # Biped5d_control.I5.sent_position(round(joint_command.data[4],3),round(joint_command.data[9],3))
+                rospy.loginfo("--------------------")
+                for i in range(len(Biped5d_control.joint_command.data)):
+                    rospy.loginfo(str(round(Biped5d_control.joint_command.data[i],3)))
+                # Biped5d_control.I1.sent_position(round(Biped5d_control.joint_command.data[0],3),round(joint_command.data[5],3))
+                # Biped5d_control.T2.sent_position(round(Biped5d_control.joint_command.data[1],3),round(joint_command.data[6],3))
+                # Biped5d_control.T3.sent_position(round(Biped5d_control.joint_command.data[2],3),round(joint_command.data[7],3))
+                # Biped5d_control.T4.sent_position(round(Biped5d_control.joint_command.data[3],3),round(joint_command.data[8],3))
+                # Biped5d_control.I5.sent_position(round(Biped5d_control.joint_command.data[4],3),round(joint_command.data[9],3))
                 Biped5d_control.mutex.release()
                 if_new_value = False
-                joint_command.data = []
+                Biped5d_control.joint_command.data = []
                 
         rospy.loginfo("task command end")
 
@@ -118,7 +120,7 @@ class Biped5d_control():
 
             feedback_publish.data = []
             Biped5d_control.mutex.release()
-            rospy.timer.sleep(0.01) # 10ms
+            rospy.timer.sleep(0.02) # 20ms
             ''' end '''
 
         rospy.loginfo("task feedback end")
@@ -127,7 +129,7 @@ class Biped5d_control():
     
     @staticmethod
     def positive_value_callbacks(msg):
-
+        Biped5d_control.joint_command = msg
         pass
 
    
