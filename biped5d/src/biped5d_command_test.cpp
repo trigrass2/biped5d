@@ -33,20 +33,13 @@ int main(int argc, char *argv[])
     command.data[4] = 0;    // RY
     command.data[5] = 180;  // Rz
 
-    // actual joint position
-    command.data[6] = 0;    // I1    unit(rad)
-    command.data[7] = 0;    // T2
-    command.data[8] = 0;    // T3
-    command.data[9] = 0;    // T4
-    command.data[10] = 0;   // I5
-
     // top velocity
-    command.data[11] = -0.01;   // X_v  unit(m/s)
-    command.data[12] = 0;       // Y_v
-    command.data[13] = 0;       // Z_v
-    command.data[14] = 0;       // Rx_v unit(deg/s)
-    command.data[15] = 0;       // Ry_v
-    command.data[16] = 0;       // Rz_v
+    command.data[6] = -0.01;   // X_v  unit(m/s)
+    command.data[7] = 0;       // Y_v
+    command.data[8] = 0;       // Z_v
+    command.data[9] = 0;       // Rx_v unit(deg/s)
+    command.data[10] = 0;       // Ry_v
+    command.data[11] = 0;       // Rz_v
 
     std::vector<std_msgs::Float64MultiArray> waypoints;
     waypoints.push_back(command);

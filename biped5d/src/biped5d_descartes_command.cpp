@@ -6,10 +6,13 @@
 #include <iomanip>
 
 std_msgs::Float64MultiArray request_descartes_point;
+std_msgs::Float64MultiArray robot_joint_data;
 
 int main(int argc, char **argv)
 {
     void subCallback(const std_msgs::Float64MultiArrayConstPtr &msg);
+    void subCallback_jointData(const std_msgs::Float64MultiArrayConstPtr &msg);
+
     double Robot_Link_Len[6] = {0.1764,0.2568,0.2932,0.2932,0.2568,0.1764}; //robot link length
 
     Kine_CR_FiveDoF_G1 Biped5d; // robot based on the gripper0 to get inverse solution
@@ -24,10 +27,21 @@ int main(int argc, char **argv)
         sleep(1);
     }
 
+    ros::Subscriber sub_jointData = nh.subscribe("/low_level/biped5d_joint_point", 30, subCallback_jointData);
+    while(ros::ok() && sub_jointData.getNumPublishers()<1){
+        ROS_INFO("topic /low_level/biped5d_joint_point not exist!!");
+        sleep(1);
+    }
+
     std_msgs::Float64MultiArray transmit_joint_list; // I1,T2,T3,T4,I5
     transmit_joint_list.data.resize(10);
     transmit_joint_list.data.clear();
-    request_descartes_point.data.resize(17);  //descartes points + joint points
+    
+    robot_joint_data.data.resize(5);
+    robot_joint_data.data.clear();
+    robot_joint_data.data = {0,0,0,0,0};
+
+    request_descartes_point.data.resize(11);  //descartes points + joint points
 
     double current_joint_value[5] = {0,0,0,0,0};  //unit:degree
     double current_top_velocity[6]; //m/s,degree/s
@@ -52,18 +66,24 @@ int main(int argc, char **argv)
             new_decartes_point[4] = request_descartes_point.data[4];    //RY   
             new_decartes_point[5] = request_descartes_point.data[5];    //RZ
 
-            current_joint_value[0] = request_descartes_point.data[6];   //I1
-            current_joint_value[1] = request_descartes_point.data[7];   //T2
-            current_joint_value[2] = request_descartes_point.data[8];   //T3
-            current_joint_value[3] = request_descartes_point.data[9];   //T4
-            current_joint_value[4] = request_descartes_point.data[10];  //I5
+            // current_joint_value[0] = request_descartes_point.data[6];   //I1
+            // current_joint_value[1] = request_descartes_point.data[7];   //T2
+            // current_joint_value[2] = request_descartes_point.data[8];   //T3
+            // current_joint_value[3] = request_descartes_point.data[9];   //T4
+            // current_joint_value[4] = request_descartes_point.data[10];  //I5
 
-            current_top_velocity[0] = request_descartes_point.data[11]; // X_v
-            current_top_velocity[1] = request_descartes_point.data[12]; // Y_v
-            current_top_velocity[2] = request_descartes_point.data[13]; // Z_v
-            current_top_velocity[3] = request_descartes_point.data[14]; // RX_v
-            current_top_velocity[4] = request_descartes_point.data[15]; // RY_v
-            current_top_velocity[5] = request_descartes_point.data[16]; // RZ_v
+            current_joint_value[0] = robot_joint_data.data[0] * PI_DEG;   //I1
+            current_joint_value[1] = robot_joint_data.data[1] * PI_DEG;   //T2
+            current_joint_value[2] = robot_joint_data.data[2] * PI_DEG;   //T3
+            current_joint_value[3] = robot_joint_data.data[3] * PI_DEG;   //T4
+            current_joint_value[4] = robot_joint_data.data[4] * PI_DEG;  //I5
+
+            current_top_velocity[0] = request_descartes_point.data[6]; // X_v
+            current_top_velocity[1] = request_descartes_point.data[7]; // Y_v
+            current_top_velocity[2] = request_descartes_point.data[8]; // Z_v
+            current_top_velocity[3] = request_descartes_point.data[9]; // RX_v
+            current_top_velocity[4] = request_descartes_point.data[10]; // RY_v
+            current_top_velocity[5] = request_descartes_point.data[11]; // RZ_v
 
             Biped5d.IKine(new_decartes_point,current_joint_value,new_joint_value);
 
@@ -109,4 +129,16 @@ int main(int argc, char **argv)
 
 void subCallback(const std_msgs::Float64MultiArrayConstPtr &msg){
     request_descartes_point = *msg;
+}
+
+void subCallback_jointData(const std_msgs::Float64MultiArrayConstPtr &msg){
+    robot_joint_data = *msg;
+
+    // ROS_INFO("-----------");
+    // ROS_INFO("pos:");
+    // ROS_INFO("%.2f", robot_joint_data.data[0]);
+    // ROS_INFO("%.2f", robot_joint_data.data[1]);
+    // ROS_INFO("%.2f", robot_joint_data.data[2]);
+    // ROS_INFO("%.2f", robot_joint_data.data[3]);
+    // ROS_INFO("%.2f", robot_joint_data.data[4]);
 }

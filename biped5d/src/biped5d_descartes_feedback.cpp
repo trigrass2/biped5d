@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     std_msgs::Float64MultiArray transmit_descartes_point;
     transmit_descartes_point.data.resize(6);
     request_joint_point.data.resize(6);
-    ros::Rate timer(30);
+    ros::Rate timer(50);
 
     boost::shared_ptr<std_msgs::Float64MultiArray const> shared;
 

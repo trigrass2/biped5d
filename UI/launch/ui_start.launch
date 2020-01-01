@@ -1,0 +1,6 @@
+<launch>
+
+
+<!--start the UI-->
+<node  name="start_ui" pkg="ui" type="main.py" required="true"/>
+</launch>

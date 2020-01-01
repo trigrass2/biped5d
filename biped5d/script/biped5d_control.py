@@ -4,6 +4,7 @@ import signal
 import ctypes
 import inspect
 import sys
+from math import fabs 
 
 import rospy
 from rospkg import RosPack
@@ -54,6 +55,12 @@ class Biped5d_control():
         Biped5d_control.joint_command.data = []
 
         if_new_value = False
+        error = 0.001
+        I1_old_data = 0
+        T2_old_data = 0
+        T3_old_data = 0
+        T4_old_data = 0
+        I5_old_data = 0
 
         while(not Biped5d_control.stop):
             try:
@@ -61,11 +68,22 @@ class Biped5d_control():
             except:
                 rospy.loginfo("timeout.../low_level/biped5d_joint_command")
                 pass
-            if Biped5d_control.joint_command.data:
+
+            if( (fabs(I1_old_data - Biped5d_control.joint_command.data[0]) <= error) or
+                (fabs(T2_old_data - Biped5d_control.joint_command.data[1]) <= error) or
+                (fabs(T3_old_data - Biped5d_control.joint_command.data[2]) <= error) or
+                (fabs(T4_old_data - Biped5d_control.joint_command.data[3]) <= error) or
+                (fabs(I5_old_data - Biped5d_control.joint_command.data[4]) <= error) ):
+
+                I1_old_data - Biped5d_control.joint_command.data[0]
+                T2_old_data - Biped5d_control.joint_command.data[1]
+                T3_old_data - Biped5d_control.joint_command.data[2]
+                T4_old_data - Biped5d_control.joint_command.data[3]
+                I5_old_data - Biped5d_control.joint_command.data[4]
                 if_new_value = True
-            
-            if if_new_value:
-                rospy.loginfo("get joint data...")
+
+            if(if_new_value):
+                # rospy.loginfo("get joint data...")
                 Biped5d_control.mutex.acquire()
                 rospy.loginfo("--------------------")
                 for i in range(len(Biped5d_control.joint_command.data)):
@@ -77,8 +95,7 @@ class Biped5d_control():
                 # Biped5d_control.I5.sent_position(round(Biped5d_control.joint_command.data[4],3),round(joint_command.data[9],3))
                 Biped5d_control.mutex.release()
                 if_new_value = False
-                Biped5d_control.joint_command.data = []
-                
+
         rospy.loginfo("task command end")
 
     @staticmethod
@@ -94,18 +111,18 @@ class Biped5d_control():
             
             Biped5d_control.mutex.acquire()
 
-            # feedback = [Biped5d_control.I1.get_position(),\
-            #             Biped5d_control.T2.get_position(),\
-            #             Biped5d_control.T3.get_position(),\
-            #             Biped5d_control.T4.get_position(),\
-            #             Biped5d_control.I5.get_position()]
+            # feedback = [round(Biped5d_control.I1.get_position(),3),\
+            #             round(Biped5d_control.T2.get_position(),3),\
+            #             round(Biped5d_control.T3.get_position(),3),\
+            #             round(Biped5d_control.T4.get_position(),3),\
+            #             round(Biped5d_control.I5.get_position(),3) ]
 
             # feedback_publish.data.clear()
             
             # for i in range(len(feedback)):
             #     feedback_publish.data.append(feedback[i])
             # publisher.publish(feedback_publish)
-            # rospy.timer.sleep(0.01) # 10ms
+            # rospy.timer.sleep(0.02) # 20ms
 
 
             ''' test code ''' 
