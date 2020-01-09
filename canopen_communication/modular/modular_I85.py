@@ -1,59 +1,129 @@
 #!/usr/bin/env python2.7
 # -*- coding: UTF-8 -*-
-import sys
-sys.path.append("./src/birl_modular_robot/canopen_communication/modular")
-from  canopen_control_init import Canopen_control_init
+# import sys
+
 import time
-from math import radians,degrees
+from math import radians, degrees
+from canopen import BaseNode402
+from canopen import network
+# import pdb
 
-
-class I85(Canopen_control_init):
+class I85():
     """
     I85 control base on the canopen
     """
-    def __init__(self,id,eds_file):
+
+    def __init__(self, id, eds_file):
         """
         add node to the can
         :param id: node id
         :param eds_file: the location of the eds file
         :return:
         """
-        super(I85, self).__init__()
-        self.id = id
-        self.eds_file = eds_file
-        self.node = self.network.add_node(self.id, self.eds_file)
+        self.__network = network.Network()
+        self.__network.connect(channel='can0', bustype='socketcan')
+        self.__network.check()
+        self.__network.sync.start(0.001)        # 1ms
+        self.__id = id
+        self.__eds_file = eds_file
+        self.__node = BaseNode402(self.__id, self.__eds_file)
+        self.__network.add_node(self.__node)
 
     def start(self):
         """
         start communication
         """
-        self.node.nmt.state = 'RESET'
-        self.node.nmt.wait_for_bootup(10)
-        print('node {1} state 1) = {0}'.format(self.node.nmt.state, self.id))
+        print "Motor Start.\n"
+        # Reset network
+        self.__node.nmt.state = 'RESET'
+        self.__node.nmt.state = 'RESET COMMUNICATION'
+        self.__node.nmt.wait_for_bootup(10)
+        self.__node.setup_402_state_machine()
 
-        error_log = self.node.sdo[0x1003]
-        for error in error_log.values():
-            print("Error {0} was found in the log".format(error.raw))
-        print('node {1} state 2) = {0}'.format(self.node.nmt.state, self.id))
+        self.__controlword = 0x80
+        self.__node.controlword = self.__controlword
+        self.__controlword = 0x81
+        self.__node.controlword = self.__controlword
 
-        try:
-            self._eds_configure()
-        except:
-            print("sdo configure error!!!")
+        self.__motor_rate_current = self.__node.sdo[0x6076].phys  #mN.m
+        self.__torque_constant = self.__node.sdo[0x6410][0x0c].phys  # 0.001 N.m/A
+        # print "motor rate torque: {0}".format(self.__motor_rate_current)
+        # print "motor torque constant: {0}".format(self.__torque_constant)
 
-        print('node {1} state 3) = {0}'.format(self.node.nmt.state, self.id))
+        self.__controlword = 0x001f
+        self.__node.controlword = self.__controlword
+        self.__controlword = 0x000f
+        self.__node.controlword = self.__controlword
+        self.__node.controlword = ( self.__controlword | (1 << 6) )
 
-        self.node.nmt.state = "OPERATIONAL"
-        print('node {1} state 4) = {0}'.format(self.node.nmt.state, self.id))
+        self.__param_config()
+
+
+        print "Joint {0} Initialization Complete.\n".format(self.__id)
 
     def stop(self):
         """
         stop communication
         """
-        self.node.nmt.state = 'PRE-OPERATIONAL'
-        print('node {1} state 5) = {0}'.format(self.node.nmt.state, self.id))
-        self.network.sync.stop()
-        self.network.disconnect()
+
+        self.serve_off()
+        print "Joint {0} Stop.\n".format(self.__id)
+        self.__node.nmt.state = 'PRE-OPERATIONAL'
+        print('node {1} state 5) = {0}'.format(self.__node.nmt.state, self.__id))
+        del self.__network[self.__id]
+        self.__network.sync.stop()
+        self.__network.disconnect()
+        print "Joint {0} Stop success.\n".format(self.__id)
+
+    def get_operation_mode(self):
+        return self.__node.op_mode
+        pass
+
+    def quick_stop(self):
+        self.__node.controlword = (self.__controlword & ~( 1 << 2 ))
+        self.__node.nmt.state = 'PRE-OPERATIONAL'
+        del self.__network[self.__id]
+        self.__network.sync.stop()
+        self.__network.disconnect()
+
+    def pause_run(self):
+        self.__node.controlword = (self.__controlword | ( 1 << 8))
+        pass
+
+    def continue_run(self):
+        self.__node.controlword = ( self.__controlword & ~(1 << 8))
+        pass
+
+    def __user_data_to_motor(self, position):
+        """
+        rad -> mdeg * resolution of encoder * reduction ratio / 360 degree
+        :return:
+        """
+        return  int(degrees(position) * 4096 * 188 / 360)
+
+    def __motor_data_to_user(self, position):
+        """
+        actual position [count] -> rad
+        :return:
+        """
+        return (radians(position) * 360 / 188 / 4096)
+
+    def __motor_torque_to_user(self,torque):
+        return (torque * self.__motor_rate_current / 1000)
+
+    def __user_torque_to_motor(self, torque):
+        return (torque * 1000 / self.__motor_rate_current )
+
+    def controlword(self,data):
+        self.__controlword = data
+        self.__node.controlword = self.__controlword
+        pass
+
+    def opmode_set(self,data):
+        self.__node.op_mode = data
+        while( self.__node.op_mode != data ):
+            self.__node.op_mode = data
+            time.sleep(0.01)
 
     def set_mode(self, mode):
         """
@@ -62,182 +132,100 @@ class I85(Canopen_control_init):
         3: Profiled Velocity
         4: Profiled Torque
         """
-        self.mode = mode
-        if (self.mode == 1 or self.mode == 3 or self.mode == 4):
+        if (mode == 1 or mode == 3 or mode == 4):
             try:
-                self.node.sdo[0x6060].raw = self.mode
+                self.node.sdo[0x6060].phys = mode
             except:
                 print "set mode error"
 
-    def sent_position(self,position,velocity = 0.03):
+    def sent_position(self,pos, vel):
         """
         In the profile position mode this function sent some control message to motor.
         :param position: motor position(rad)
         :param velocity: default motor velocity(rad/s)
         """
-        if(self.mode == 1):
-
-            self.node.sdo[0x6081].raw = 10 * self._I85_msg_to_device(velocity)  # 0.02 rad/s
-            self.node.sdo[0x6060].raw = 1  # profile position mode
-            self.node.sdo[0x6086].raw = 0
-            self.node.sdo.download(0x607a, 0x0, self._decTohex_32(self._I85_msg_to_device(position)))
-            self.node.sdo[0x6040].bits[4] = 0
-            self.node.sdo[0x6040].bits[4] = 1
-            self.node.sdo[0x6040].bits[5] = 1
-            self.node.sdo[0x6040].bits[6] = 0
-            self.node.sdo[0x6040].bits[4] = 0
+        self.__node.sdo[0x6081].phys = self.__user_data_to_motor( vel * 10)
+        self.__node.sdo[0x607a].phys = self.__user_data_to_motor( pos )
+        self.__node.controlword = ( self.__controlword & ~(1 << 4) )
+        self.__node.controlword = ( self.__controlword | (3  << 4) )
+        self.__node.controlword = ( self.__controlword & ~(1 << 4) )
 
 
-    def sent_velocity(self,velocity):
+    def sent_velocity(self,data):
         """
-        In the profile velocity mode this function sent some control message to motor.
-        :param velocity: motor velocity(rad/s)
-        :return:
-        """
-        if self.mode == 3:  # Profiled Velocity
-            self.node.sdo[0x6040].bits[0] = 1
-            self.node.sdo[0x6040].bits[1] = 1
-            self.node.sdo[0x6040].bits[2] = 1
-            self.node.sdo[0x6040].bits[3] = 1
-            # self.node.sdo[0x6040].bits[7] = 0
-            velocity = 10 * self._I85_msg_to_device(velocity)
-            self.node.sdo.download(0x60ff, 0x0, self._decTohex_32(velocity))  # velocity
+         In the profile velocity mode this function sent some control message to motor.
+         :param velocity: motor velocity(rad/s)
+         :return:
+         """
+        self.__node.sdo[0x60ff].phys = self.__user_data_to_motor( data * 10 )
 
-    def sent_torque(self,torque):
+    def sent_torque(self,data):
         """
-        In the profile torque mode this function sent some control message to motor.
-        :param torque: motor torque()
-        :return:
-        """
-        if self.mode == 4:  # Profiled Torque
-            # enable operation
-            self.node.sdo[0x6040].bits[0] = 1
-            self.node.sdo[0x6040].bits[1] = 1
-            self.node.sdo[0x6040].bits[2] = 1
-            self.node.sdo[0x6040].bits[3] = 1
-            #self.node.sdo[0x6040].bits[4] = 1
-            #self.node.sdo[0x6040].bits[7] = 0
-            self.node.sdo.download(0x6071, 0x0,self._decTohex(torque))  # torque
+            In the profile torque mode this function sent some control message to motor.
+            :param torque: motor torque()
+            :return:
+            """
+        self.__node.sdo[0x6071].phys = self.__user_torque_to_motor( data )
+
+    def statusword(self):
+        return self.__node.statusword
+
+    def opmode_read(self):
+        return  self.__node.op_mode
 
     def get_position(self):
         """
-        get the motor actual value
-        :return position(rad)
-        """
-        return self._I85_msg_from_device(self.node.sdo[0x6064].phys)  # rad
+           get the motor actual value
+           :return position(rad)
+           """
+        return (self.__motor_data_to_user( self.__node.sdo[0x6064].phys ))
 
     def get_velocity(self):
         """
         get the motor actual value
         :return velocity(rad/s)
         """
-        return (self._I85_msg_from_device(self.node.sdo[0x606c].phys)) / 10 # rad/s
+        return ( self.__motor_data_to_user( self.__node.sdo[0x606c].phys ) / 10)
 
     def get_torque(self):
         """
         get the motor actual value
         :return torque(rate torque(mN.m) /1000)
         """
-        return self.node.sdo[0x6077].phys   # rate torque(mN.m) /1000
-
-    def get_current(self):
-        """
-        get the motor actual value
-        :return current(mA)
-        """
-        return self.node.sdo[0x221c].phys  # mA
-
-    def get_operation_mode(self):
-        return self.node.sdo[0x6061].phys
+        return ( self.__motor_torque_to_user( self.__node.sdo[0x6077].phys ))
         pass
-        
-    def quick_stop(self):
-        self.node.sdo[0x6040].bits[2] = 0
-        self.node.nmt.state = 'PRE-OPERATIONAL'
-        print('node {1} state 5) = {0}'.format(self.node.nmt.state, self.id))
-        self.network.sync.stop()
-        self.network.disconnect()
-    
-    def pause_run(self):
-        self.node.sdo[0x6040].bits[8] = 1
 
-    def continue_run(self):
-        val = self.node.sdo[0x6040].raw
-        val |= 0xF
-        val &= 0x7F
-        self.node.sdo[0x6040].raw = val
-        
-    def _decTohex(self,number):
-        """decimal to hexadecimal"""
-        if (number < 0):
-            number = hex(number & 0xffff)  # negetive decimal number
-        else:
-            number = hex(number)  # positive decimal number
-        # print number
-        if (len(number) == 3):
-            number = '0' + number[2] + '00'
-        elif (len(number) == 4):
-            number = number[2:4] + '00'
-        elif (len(number) == 5):
-            number = number[3:5] + '0' + number[2]
-        elif (len(number) == 6):
-            number = number[4:6] + number[2:4]
-        number = number.decode('hex')
-        return number
+    def serve_on(self):
+        while(self.__node.state != 'OPERATION ENABLED'):
+            if(self.__node.state == 'NOT READY TO SWITCH ON'):
+                self.__node.state = 'SWITCH ON DISABLED'
+            elif(self.__node.state == 'SWITCH ON DISABLED'):
+                self.__node.state = 'READY TO SWITCH ON'
+            elif(self.__node.state == 'READY TO SWITCH ON'):
+                self.__node.state = 'SWITCHED ON'
+            elif(self.__node.state == 'SWITCHED ON'):
+                self.__node.state = 'OPERATION ENABLED'
+            else:
+                self.__node.reset_from_fault()
+            time.sleep(0.01)    # 10ms
+            print "Serve On ...\n"
 
-    def _decTohex_32(self,number):
-        """decimal to hexadecimal"""
-        if (number < 0):
-            number = hex(number & 0xffffffff)  # negetive decimal number
-            number = number[8:10] + number[6:8] + number[4:6] + number[2:4]
-            return number.decode('hex')
+    def serve_off(self):
+        print "Serve Off.\n"
+        self.__node.state = 'READY TO SWITCH ON'
 
-        else:
-            number = hex(number)  # positive decimal number
-            # print number
-            if (len(number) == 10):
-                number = number[8:10] + number[6:8] + number[4:6] + number[2:4]
-            elif (len(number) == 9):
-                number = number[7:9] + number[5:7] + number[3:5] + '0' + number[2]
-            elif (len(number) == 8):
-                number = number[6:8] + number[4:6] + number[2:4] + '00'
-            elif (len(number) == 7):
-                number = number[5:7] + number[3:5] + '0' + number[2] + '00'
-            elif (len(number) == 3):
-                number = '0' + number[2] + '000000'
-            elif (len(number) == 4):
-                number = number[2:4] + '000000'
-            elif (len(number) == 5):
-                number = number[3:5] + '0' + number[2] + '0000'
-            elif (len(number) == 6):
-                number = number[4:6] + number[2:4] + '0000'
+    def __del__(self):
+        pass
 
-            return number.decode('hex')
+    def reached(self):
+        return ( self.__node.sdo[0x6041].bits[10] )
 
-    def _I85_msg_to_device(self, position):
-        """
-        rad -> mdeg * resolution of encoder * reduction ratio / 360 degree
-        :return:
-        """
-        position = degrees(position) * 4096 * 188.24 / 360
-        return int(position)
+    def __param_config(self):
+        # pos loop
+        self.__node.sdo[0x6083].phys =  500 * 4096 / 10     # acc 10 counts/s^2
+        self.__node.sdo[0x6084].phys =  500 * 4096 / 10     # dcc 10 counts/s^2
+        self.__node.sdo[0x6086].phys =  0                   # rotate motor
 
-    def _I85_msg_from_device(self, position):
-        """
-        actual position [count] -> rad
-        :return:
-        """
-        position = radians(position) * 360 / 188.24 / 4096
-        return position
-
-    def _eds_configure(self):
-        """
-
-        :return:
-        """
-        self.node.sdo[0x6040].bits[0] = 1
-        self.node.sdo[0x6040].bits[1] = 1
-        self.node.sdo[0x6040].bits[2] = 1
-        self.node.sdo[0x6040].bits[3] = 1
-        self.node.sdo[0x6040].bits[8] = 0
-        self.node.sdo[0x605d].raw = 1 # halt options
+        # motor data
+        self.__node.sdo[0x6410][0x0b].phys = 45000     # max velocity 0.1counts/s
+        self.__node.sdo[0x6410][0x0d].phys = 1200      # max torque mN.m
