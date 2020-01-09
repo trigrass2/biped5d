@@ -3,9 +3,10 @@
 import signal
 import ctypes
 import inspect
-import sys
 from math import fabs 
+import time
 
+import sys
 import rospy
 from rospkg import RosPack
 sys.path.append(RosPack().get_path('canopen_communication') + "/modular/")
@@ -21,81 +22,76 @@ class Biped5d_control():
     mutex = threading.Lock()
     stop = False
     joint_command = Float64MultiArray()
+    joint_command_length = 0
+    command_start = False
 
     
     def __init__(self):
 
         rospy.init_node("biped5d_control", anonymous=True, log_level=rospy.DEBUG)
-        # rospy.loginfo("Biped5d_control init")
+        rospy.loginfo("Biped5d_control init")
 
         signal.signal(signal.SIGINT, Biped5d_control.__quit_muti_thread)
         signal.signal(signal.SIGTERM, Biped5d_control.__quit_muti_thread)
 
-        
         self.thread_command = threading.Thread(target = Biped5d_control.task_command,args=(None,))
         self.thread_feedback = threading.Thread(target = Biped5d_control.task_feedback,args=(None,))
+        self.thread_get_joint_command = threading.Thread(target = Biped5d_control.get_joint_command,args=(None,))
 
         self.thread_command.start()
         self.thread_feedback.start()
+        self.thread_get_joint_command.start()
 
         signal.pause()
 
         self.thread_command.join()
         self.thread_feedback.join()
+        self.thread_get_joint_command.join()
    
     @staticmethod
     def task_command(self):
         
         rospy.loginfo("task command start")
-        sub = rospy.Subscriber("/low_level/biped5d_joint_command",Float64MultiArray,Biped5d_control.positive_value_callbacks)
         
         Biped5d_control.mutex.acquire()
         Biped5d_control.__start_communication()
         Biped5d_control.mutex.release()
         Biped5d_control.joint_command.data = []
 
-        if_new_value = False
-        error = 0.001
-        I1_old_data = 0
-        T2_old_data = 0
-        T3_old_data = 0
-        T4_old_data = 0
-        I5_old_data = 0
+        while (not Biped5d_control.stop):
 
-        while(not Biped5d_control.stop):
-            try:
-                rospy.wait_for_message('/low_level/biped5d_joint_command', Float64MultiArray, 5)
-            except:
-                rospy.loginfo("timeout.../low_level/biped5d_joint_command")
-                pass
+            index = 0
 
-            if( (fabs(I1_old_data - Biped5d_control.joint_command.data[0]) <= error) or
-                (fabs(T2_old_data - Biped5d_control.joint_command.data[1]) <= error) or
-                (fabs(T3_old_data - Biped5d_control.joint_command.data[2]) <= error) or
-                (fabs(T4_old_data - Biped5d_control.joint_command.data[3]) <= error) or
-                (fabs(I5_old_data - Biped5d_control.joint_command.data[4]) <= error) ):
+            while(not Biped5d_control.command_start):
+                time.sleep(0.05)
+                rospy.loginfo("wait for joint command...")
+            
+            Biped5d_control.mutex.acquire()
+            Biped5d_control.I1.sent_position(Biped5d_control.joint_command.data[index][0],joint_command.data[index][5])
+            Biped5d_control.T2.sent_position(Biped5d_control.joint_command.data[index][1],joint_command.data[index][6])
+            Biped5d_control.T3.sent_position(Biped5d_control.joint_command.data[index][2],joint_command.data[index][7])
+            Biped5d_control.T4.sent_position(Biped5d_control.joint_command.data[index][3],joint_command.data[index][8])
+            Biped5d_control.I5.sent_position(Biped5d_control.joint_command.data[index][4],joint_command.data[index][9])
+            index += 1
+            Biped5d_control.command_start = False
+            Biped5d_control.mutex.release()   
 
-                I1_old_data - Biped5d_control.joint_command.data[0]
-                T2_old_data - Biped5d_control.joint_command.data[1]
-                T3_old_data - Biped5d_control.joint_command.data[2]
-                T4_old_data - Biped5d_control.joint_command.data[3]
-                I5_old_data - Biped5d_control.joint_command.data[4]
-                if_new_value = True
+            while(index != Biped5d_control.joint_command_length):
 
-            if(if_new_value):
-                # rospy.loginfo("get joint data...")
                 Biped5d_control.mutex.acquire()
-                # rospy.loginfo("--------------------")
-                # for i in range(len(Biped5d_control.joint_command.data)):
-                #     rospy.loginfo(str(round(Biped5d_control.joint_command.data[i],3)))
-                Biped5d_control.I1.sent_position(round(Biped5d_control.joint_command.data[0],3),round(joint_command.data[5],3))
-                Biped5d_control.T2.sent_position(round(Biped5d_control.joint_command.data[1],3),round(joint_command.data[6],3))
-                Biped5d_control.T3.sent_position(round(Biped5d_control.joint_command.data[2],3),round(joint_command.data[7],3))
-                Biped5d_control.T4.sent_position(round(Biped5d_control.joint_command.data[3],3),round(joint_command.data[8],3))
-                Biped5d_control.I5.sent_position(round(Biped5d_control.joint_command.data[4],3),round(joint_command.data[9],3))
-                Biped5d_control.mutex.release()
-                if_new_value = False
+                if (Biped5d_control.I1.reached() and Biped5d_control.T2.reached() and
+                    Biped5d_control.T3.reached() and Biped5d_control.T4.reached() and 
+                    Biped5d_control.I5.reached() ):
 
+                    Biped5d_control.I1.sent_position(Biped5d_control.joint_command.data[index][0],joint_command.data[index][5])
+                    Biped5d_control.T2.sent_position(Biped5d_control.joint_command.data[index][1],joint_command.data[index][6])
+                    Biped5d_control.T3.sent_position(Biped5d_control.joint_command.data[index][2],joint_command.data[index][7])
+                    Biped5d_control.T4.sent_position(Biped5d_control.joint_command.data[index][3],joint_command.data[index][8])
+                    Biped5d_control.I5.sent_position(Biped5d_control.joint_command.data[index][4],joint_command.data[index][9])
+                    index += 1
+                Biped5d_control.mutex.release()
+                time.sleep(0.005)
+        
         rospy.loginfo("task command end")
 
     @staticmethod
@@ -116,6 +112,7 @@ class Biped5d_control():
                         round(Biped5d_control.T3.get_position(),3),\
                         round(Biped5d_control.T4.get_position(),3),\
                         round(Biped5d_control.I5.get_position(),3) ]
+            Biped5d_control.mutex.release()
 
             feedback_publish.data.clear()
             
@@ -143,10 +140,23 @@ class Biped5d_control():
         rospy.loginfo("task feedback end")
 
 
+    @staticmethod
+    def get_joint_command(self):
+
+        sub = rospy.Subscriber("/low_level/biped5d_joint_command",Float64MultiArray,Biped5d_control.positive_value_callbacks)
+
+        while(not Biped5d_control.stop):
+            try:
+                rospy.wait_for_message('/low_level/biped5d_joint_command', Float64MultiArray, 5)
+            except:
+                rospy.loginfo("timeout.../low_level/biped5d_joint_command")
+            
     
     @staticmethod
     def positive_value_callbacks(msg):
         Biped5d_control.joint_command = msg
+        Biped5d_control.joint_command_length  = len(Biped5d_control.joint_command.data)
+        Biped5d_control.command_start = True
         pass
 
    
@@ -184,8 +194,8 @@ class Biped5d_control():
     @staticmethod
     def __quit_muti_thread(sig, frame):
         Biped5d_control.stop = True
-        # Biped5d_control.__stop_robot()
-        sys.exit()
+        Biped5d_control.__stop_robot()
+        # sys.exit()
 
 
 if __name__ == '__main__':
