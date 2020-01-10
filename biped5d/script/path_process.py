@@ -5,10 +5,16 @@ from math import radians
 
 class Path_process():
     
-    def __init__(self):
+    def __init__(self,start_point = [0,0,0,0,0]):
 
         self.__joint_pos = []
         self.__max_vel = 10  
+
+        # add the start point
+        temp = []
+        for i in range(len(start_point)):
+            temp.append(start_point[i])
+        self.__joint_pos.append(temp) 
 
     def __readfile(self,path):
 
@@ -36,6 +42,9 @@ class Path_process():
 
             line = f.readline()  
         f.close()
+
+        # for i in range(len(self.__joint_pos)):
+        #     print self.__joint_pos[i]
 
 
     def __get_joint_position(self):
@@ -84,8 +93,9 @@ class Path_process():
                 
         self.__joint_pos = temp
 
-        # for i in range(len(joint_pos)):
-        #     print joint_pos[i]
+        # print len(self.__joint_pos)
+        # for i in range(len(self.__joint_pos)):
+        #     print self.__joint_pos[i]
 
     def __get_joint_velocity(self):
 

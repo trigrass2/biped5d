@@ -15,16 +15,15 @@ def main():
 
     process = Path_process()
     trajectory = process.get_trajectory(RosPack().get_path('birl_module_robot') + "/data/demo_data.txt")
+    # rospy.init_node("biped5d_sent_joint_command", anonymous=True)
+    # publisher = rospy.Publisher("/low_level/biped5d_joint_command",joint_point,queue_size = 10)
+    # joint_command = joint_point()
+    # joint_command.data.data = trajectory
 
-    rospy.init_node("biped5d_sent_joint_command", anonymous=True)
-    publisher = rospy.Publisher("/low_level/biped5d_joint_command",joint_point,queue_size = 10)
-    joint_command = joint_point()
-    joint_command.data.data = trajectory
-
-    while(not rospy.is_shutdown()):
-        publisher.publish(joint_command)
-        time.sleep(3)
-    rospy.spin()
+    # while(not rospy.is_shutdown()):
+    #     publisher.publish(joint_command)
+    #     time.sleep(3)
+    # rospy.spin()
 
 
 if __name__ == '__main__':
