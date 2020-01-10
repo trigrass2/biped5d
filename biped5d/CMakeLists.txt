@@ -8,12 +8,19 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  # tf
-  # tf2
-  # tf2_ros
-  # sensor_msgs
-  # geometry_msgs
-  # message_generation
+  message_generation
+)
+
+add_message_files(
+  FILES
+  descartes_point.msg
+  joint_point.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  
 )
 
 catkin_package(
