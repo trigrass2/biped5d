@@ -1,8 +1,8 @@
-# BirlModuleRobot
+## BirlModuleRobot
 
-BIRL 爬壁机器人控制
+**BIRL 爬壁机器人控制**
 
-**1. 安装通信驱动及相关依赖**
+###1. 安装通信驱动及相关依赖
 ```
 cd
 mkdir -r ros/biped5d_robot/src/ && cd ~/ros/biped5d_robot/src/
@@ -31,16 +31,16 @@ sudo apt-get install can-utils
 sudo pip install canopen
 ```
 
-**2. ROS安装**
+###2. ROS安装
 
   参考网址：
 
 
    <http://wiki.ros.org/kinetic/Installation/Ubuntu>
 
-**3. 软件使用**
+###3. 软件使用
 
-  *3.1 软件下载与环境配置*
+####3.1 软件下载与环境配置
 ```
 cd ~/ros/biped5d_robot/src/ 
 git clone https://github.com/Jiongyu/biped5d.git
@@ -49,11 +49,21 @@ source ~/.bashrc
 
 ```
 
-  *3.2 连接通信启动软件*
+####3.2 连接通信启动软件
+##### 3.2.1. ui control
 ```
 rosrun canopen_communication can_prepare.sh
 
 roslaunch ui ui_start.launch
+```
 
+##### 3.2.2. trajectory control
+```
+rosrun canopen_communication can_prepare.sh
+
+roslaunch birl_module_robot biped5d.lauch
+
+##command trajectory
+rosrun birl_module_robot biped5d_sent_joint_command.py 
 ```
 
