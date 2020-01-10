@@ -40,10 +40,11 @@ class T100():
         self.__node.nmt.wait_for_bootup(10)
         self.__node.setup_402_state_machine()
 
-        self.__controlword = 0x80
-        self.__node.controlword = self.__controlword
-        self.__controlword = 0x81
-        self.__node.controlword = self.__controlword
+        # self.__controlword = 0x80
+        # self.__node.controlword = self.__controlword
+        # self.__controlword = 0x81
+        # self.__node.controlword = self.__controlword
+        self.__node.reset_from_fault()
 
         self.__motor_rate_current = self.__node.sdo[0x6076].phys  #mN.m
         self.__torque_constant = self.__node.sdo[0x6410][0x0c].phys  # 0.001 N.m/A
