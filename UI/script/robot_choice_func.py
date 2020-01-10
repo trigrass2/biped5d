@@ -22,14 +22,21 @@ class Robot_choice_func(QMainWindow,Ui_MainWindow):
         self.simulation = False
         self.center()
 
-    def climbot5d(self):
-        self.windows_climbot5d_mode_set = climbot5d_Mode_set_func(self.simulation)
+    def biped5d(self):
+        self.climbot5d = False
+        self.windows_climbot5d_mode_set = climbot5d_Mode_set_func(self.simulation,self.climbot5d )
         self.windows_climbot5d_mode_set.sin_close.connect(self.close_climbot5d_mode_set)
         self.form.hide()
         self.windows_climbot5d_mode_set.show()
         pass
 
-    
+    def climbot5d(self):
+        self.climbot5d = True
+        self.windows_climbot5d_mode_set = climbot5d_Mode_set_func(self.simulation,self.climbot5d)
+        self.windows_climbot5d_mode_set.sin_close.connect(self.close_climbot5d_mode_set)
+        self.form.hide()
+        self.windows_climbot5d_mode_set.show()
+        pass
 
     def close_climbot5d_mode_set(self):
         self.windows_climbot5d_mode_set.close()

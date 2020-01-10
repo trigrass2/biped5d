@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>240</width>
-    <height>400</height>
+    <height>310</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,20 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>5-DOF双手爪攀爬机器人</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>320</y>
-      <width>50</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>仿真</string>
+     <string>5-DOF爬臂机器人</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_2">
@@ -50,20 +37,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>5-DOF机器手</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_3">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>170</y>
-      <width>200</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>7-DOF轮足式机器人</string>
+     <string>5-DOF双手爪攀爬机器人</string>
     </property>
    </widget>
   </widget>
@@ -82,66 +56,34 @@
  <resources/>
  <connections>
   <connection>
-   <sender>pushButton</sender>
+   <sender>pushButton_2</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>climbot5d()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>85</x>
-     <y>78</y>
+     <x>117</x>
+     <y>150</y>
     </hint>
     <hint type="destinationlabel">
-     <x>33</x>
-     <y>106</y>
+     <x>142</x>
+     <y>210</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>checkBox</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>if_simulation()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>204</x>
-     <y>364</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>176</x>
-     <y>305</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_2</sender>
+   <sender>pushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>robot_arm5d()</slot>
+   <slot>biped5d()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>104</x>
-     <y>136</y>
+     <x>59</x>
+     <y>52</y>
     </hint>
     <hint type="destinationlabel">
-     <x>122</x>
-     <y>193</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_3</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>wheel_bipedal7d()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>77</x>
-     <y>207</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>30</x>
-     <y>278</y>
+     <x>57</x>
+     <y>213</y>
     </hint>
    </hints>
   </connection>
@@ -151,5 +93,6 @@
   <slot>if_simulation()</slot>
   <slot>robot_arm5d()</slot>
   <slot>wheel_bipedal7d()</slot>
+  <slot>biped5d()</slot>
  </slots>
 </ui>

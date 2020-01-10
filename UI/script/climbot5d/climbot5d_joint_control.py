@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Climbot5d_joint_control(object):
     def setupUi(self, Climbot5d_joint_control):
         Climbot5d_joint_control.setObjectName("Climbot5d_joint_control")
-        Climbot5d_joint_control.resize(434, 403)
+        Climbot5d_joint_control.resize(434, 468)
         self.pushButton_5 = QtWidgets.QPushButton(Climbot5d_joint_control)
         self.pushButton_5.setGeometry(QtCore.QRect(20, 250, 60, 50))
         self.pushButton_5.setCheckable(True)
@@ -121,6 +121,22 @@ class Ui_Climbot5d_joint_control(object):
         self.pushButton_12.setGeometry(QtCore.QRect(310, 340, 101, 50))
         self.pushButton_12.setCheckable(True)
         self.pushButton_12.setObjectName("pushButton_12")
+        self.pushButton_13 = QtWidgets.QPushButton(Climbot5d_joint_control)
+        self.pushButton_13.setGeometry(QtCore.QRect(20, 400, 60, 50))
+        self.pushButton_13.setCheckable(True)
+        self.pushButton_13.setObjectName("pushButton_13")
+        self.pushButton_14 = QtWidgets.QPushButton(Climbot5d_joint_control)
+        self.pushButton_14.setGeometry(QtCore.QRect(110, 400, 60, 50))
+        self.pushButton_14.setCheckable(True)
+        self.pushButton_14.setObjectName("pushButton_14")
+        self.pushButton_15 = QtWidgets.QPushButton(Climbot5d_joint_control)
+        self.pushButton_15.setGeometry(QtCore.QRect(210, 400, 60, 50))
+        self.pushButton_15.setCheckable(True)
+        self.pushButton_15.setObjectName("pushButton_15")
+        self.pushButton_16 = QtWidgets.QPushButton(Climbot5d_joint_control)
+        self.pushButton_16.setGeometry(QtCore.QRect(210, 330, 60, 50))
+        self.pushButton_16.setCheckable(True)
+        self.pushButton_16.setObjectName("pushButton_16")
 
         self.retranslateUi(Climbot5d_joint_control)
         self.pushButton_1.clicked['bool'].connect(Climbot5d_joint_control.I1_add_position)
@@ -135,6 +151,10 @@ class Ui_Climbot5d_joint_control(object):
         self.pushButton_10.clicked['bool'].connect(Climbot5d_joint_control.I5_sub_position)
         self.pushButton_12.clicked.connect(Climbot5d_joint_control.stop)
         self.pushButton_11.clicked.connect(Climbot5d_joint_control.change_velocity)
+        self.pushButton_14.clicked['bool'].connect(Climbot5d_joint_control.G0_close)
+        self.pushButton_16.clicked['bool'].connect(Climbot5d_joint_control.G6_open)
+        self.pushButton_15.clicked['bool'].connect(Climbot5d_joint_control.G6_close)
+        self.pushButton_13.clicked['bool'].connect(Climbot5d_joint_control.G0_open)
         QtCore.QMetaObject.connectSlotsByName(Climbot5d_joint_control)
 
     def retranslateUi(self, Climbot5d_joint_control):
@@ -163,4 +183,8 @@ class Ui_Climbot5d_joint_control(object):
         self.pushButton_11.setText(_translate("Climbot5d_joint_control", "set vel"))
         self.label_6.setText(_translate("Climbot5d_joint_control", "Velocity(deg/s)"))
         self.pushButton_12.setText(_translate("Climbot5d_joint_control", "stop"))
+        self.pushButton_13.setText(_translate("Climbot5d_joint_control", "G0(+)"))
+        self.pushButton_14.setText(_translate("Climbot5d_joint_control", "G0(-)"))
+        self.pushButton_15.setText(_translate("Climbot5d_joint_control", "G6(-)"))
+        self.pushButton_16.setText(_translate("Climbot5d_joint_control", "G6(+)"))
 

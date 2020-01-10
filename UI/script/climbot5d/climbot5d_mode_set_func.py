@@ -31,31 +31,38 @@ class climbot5d_Mode_set_func(QWidget,Ui_climbot5d_Mode_Set):
     # 控制数据信号
     sin_joint_data = pyqtSignal(list)
 
+    sin_G0_data = pyqtSignal(int)
+    sin_G6_data = pyqtSignal(int)
+
     sin_stop_robot_command = pyqtSignal()
     # 急停信号
-    sin_quick_stop = pyqtSignal()
-    
+    sin_quick_stop = pyqtSignal()   
 
 
     # 回零位使用
     sin_return_zero = pyqtSignal()
 
 
-    def __init__(self,simulation=False):
+    def __init__(self,simulation=False,climbot5d=False):
         super(climbot5d_Mode_set_func,self).__init__()
         self.setupUi(self)
         self.center()
         self.simulation = simulation
+        self.climbot5d = climbot5d
 
         if not self.simulation:
 
             # 底层通信类
-            self.sent_joint_data = Thread_transmit_joint_data()
+            self.sent_joint_data = Thread_transmit_joint_data(climbot5d)
             # 初始化成功,错误信号
             self.sent_joint_data.sin_init_error.connect(self.init_error)
             self.sent_joint_data.sin_init_success.connect(self.init_success)
             # 连接反馈
             self.sent_joint_data.sin_joint_control_actual_joint_data.connect(self.joint_control_feedback_data)
+
+            if climbot5d:
+                self.sin_G0_data.connect(self.sent_joint_data.gripper_G0_data)
+                self.sin_G6_data.connect(self.sent_joint_data.gripper_G6_data)
 
             # 各窗口发送数据连接
             self.sin_joint_data.connect(self.sent_joint_data.joint_sent_data)
@@ -88,6 +95,11 @@ class climbot5d_Mode_set_func(QWidget,Ui_climbot5d_Mode_Set):
         self.windows_joint_control.sin_T3_data.connect(self.sent_T3_data)
         self.windows_joint_control.sin_T4_data.connect(self.sent_T4_data)
         self.windows_joint_control.sin_I5_data.connect(self.sent_I5_data)
+
+        self.windows_joint_control.sin_G0_data.connect(self.sent_G0_data)
+        self.windows_joint_control.sin_G6_data.connect(self.sent_G6_data)
+
+
         self.windows_joint_control.sin_quick_stop.connect(self.quick_stop)
 
         self.windows_joint_control.lineEdit_2.setText("{0}".format(round(degrees(self.I1_value),3)))
@@ -158,7 +170,15 @@ class climbot5d_Mode_set_func(QWidget,Ui_climbot5d_Mode_Set):
         if not self.simulation:
             self.sin_joint_data.emit(data)
     
+    def sent_G0_data(self,data):
+        if not self.simulation:
+            if self.climbot5d:
+                self.sin_G0_data.emit(data)
 
+    def sent_G6_data(self,data):
+        if not self.simulation:
+            if self.climbot5d:
+                self.sin_G6_data.emit(data)
            
     # 接收关节数据反馈
     def joint_control_feedback_data(self,data):

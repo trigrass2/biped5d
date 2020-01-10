@@ -8,6 +8,7 @@ sys.path.append(rp.get_path('canopen_communication') + "/modular/")
 
 from modular_I100 import I100
 from modular_T100 import T100
+from modular_G100 import G100
 from  math import fabs,degrees,radians
 from PyQt5.QtWidgets import QWidget,QDesktopWidget,QMessageBox
 from PyQt5.QtCore import QThread,pyqtSignal
@@ -24,11 +25,11 @@ class Thread_transmit_joint_data(QThread):
     # 各窗口反馈数据信号
     sin_joint_control_actual_joint_data = pyqtSignal(list)
 
-    def __init__(self,parent=None):
+    def __init__(self,climbot5d = False):
         
-        super(Thread_transmit_joint_data, self).__init__(parent)
+        super(Thread_transmit_joint_data, self).__init__()
         self.eds_file = rp.get_path('canopen_communication') + "/file/Copley.eds"       
-        
+        self.__climbot5d = climbot5d
         # 关节速度
         self.__I1_velocity = 0
         self.__T2_velocity = 0
@@ -41,6 +42,12 @@ class Thread_transmit_joint_data(QThread):
         self.__T3_old_velocity = 0
         self.__T4_old_velocity = 0
         self.__I5_old_velocity = 0
+
+        self.__G0_torque = 0
+        self.__G6_torque = 0
+
+        self.__G0_old_torque = 0
+        self.__G6_old_torque = 0
         # 运行模式
         self.__velocity_mode = False
         # 停止方式
@@ -84,7 +91,17 @@ class Thread_transmit_joint_data(QThread):
                     if self.__I5_old_velocity != self.__I5_velocity:
                         self.__I5.sent_velocity(self.__I5_velocity)
                         self.__I5_old_velocity = self.__I5_velocity
-                    self.__velocity_mode = False                                                    
+                    self.__velocity_mode = False 
+
+                if self.__climbot5d:
+
+                    if self.__G0_old_torque != self.__G0_torque:
+                        self.__G0.sent_torque(self.__G0_torque)
+                        self.__G0_old_torque = self.__G0_torque
+
+                    elif self.__G6_old_torque != self.__G6_torque:
+                        self.__G6.sent_torque(self.__G6_torque)
+                        self.__G6_old_torque = self.__G6_torque
 
                 try:
                     self.__feedback = [self.__I1.get_position(),self.__T2.get_position(),self.__T3.get_position(),\
@@ -103,7 +120,10 @@ class Thread_transmit_joint_data(QThread):
                     self.__T3.quick_stop()
                     self.__T4.quick_stop()
                     self.__I5.quick_stop()
-                    pass
+
+                    if self.__climbot5d:
+                        self.__G0.quick_stop()
+                        self.__G6.quick_stop()
                     
                 if self.stop:
                     self.__I1.stop()
@@ -111,7 +131,10 @@ class Thread_transmit_joint_data(QThread):
                     self.__T3.stop()
                     self.__T4.stop()
                     self.__I5.stop()
-                    pass            
+
+                    if self.__climbot5d:
+                        self.__G0.stop()
+                        self.__G6.stop()         
 
     def if_stop(self):
         self.stop = True
@@ -135,7 +158,23 @@ class Thread_transmit_joint_data(QThread):
             self.__I5.start()
 
             # set velocity mode.
-            self.set_velocity_mode()
+            self.__I1.opmode_set('PROFILED VELOCITY')
+            self.__T2.opmode_set('PROFILED VELOCITY')
+            self.__T3.opmode_set('PROFILED VELOCITY')
+            self.__T4.opmode_set('PROFILED VELOCITY')
+            self.__I5.opmode_set('PROFILED VELOCITY')
+
+            if self.__climbot5d:
+                self.__G0 = G100(6,self.eds_file)
+                self.__G6 = G100(7,self.eds_file)
+
+                self.__G0.start()
+                self.__G6.start()
+
+                self.__G0.opmode_set('PROFILED TORQUE')
+                self.__G6.opmode_set('PROFILED TORQUE')
+            pass 
+
 
     # 关节空间,速度模式发送关节数据
     def joint_sent_data(self,velocity):
@@ -155,15 +194,14 @@ class Thread_transmit_joint_data(QThread):
 
         self.__feedback_joint = True
         pass
-   
-    # 设置速度模式
-    def set_velocity_mode(self):
 
-        self.__I1.opmode_set('PROFILED VELOCITY')
-        self.__T2.opmode_set('PROFILED VELOCITY')
-        self.__T3.opmode_set('PROFILED VELOCITY')
-        self.__T4.opmode_set('PROFILED VELOCITY')
-        self.__I5.opmode_set('PROFILED VELOCITY')
-        # print 'success'
-        pass
+
+    def gripper_G0_data(self,data):
+        self.__G0_torque = data
+
+    def gripper_G6_data(self,data):
+        self.__G6_torque = data
+   
+
+ 
     

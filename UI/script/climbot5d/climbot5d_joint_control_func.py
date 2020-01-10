@@ -20,6 +20,9 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     sin_T4_data = pyqtSignal(list)
     sin_I5_data = pyqtSignal(list)
 
+    sin_G0_data = pyqtSignal(int)
+    sin_G6_data = pyqtSignal(int)
+
     # 设置零点信号
     sin_set_zero = pyqtSignal()
 
@@ -36,6 +39,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
         self.setupUi(self)
         self.center()
         self.velocity = 10 * 0.01745  # 10 deg
+        self.__open_torque = 600 # mN.n
 
 
     def center(self):
@@ -188,5 +192,42 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
     def stop(self):
         self.sin_quick_stop.emit()
+
+
+    def G6_open(self,pressed):
+        if pressed:
+            self.pushButton_15.setEnabled(False)  
+            self.pushButton_13.setEnabled(False)
+            self.sin_G6_data.emit(self.__open_torque)
+        else:
+            self.sin_G6_data.emit(0)
+
+
+    def G6_close(self,pressed):
+        if pressed:
+            self.pushButton_15.setEnabled(True)  
+            self.pushButton_13.setEnabled(True)
+            self.sin_G6_data.emit(- self.__open_torque)
+        else:
+            self.sin_G6_data.emit(0)
+        pass
+
+    def G0_open(self,pressed):
+        if pressed:
+            self.pushButton_16.setEnabled(False)  
+            self.pushButton_14.setEnabled(False)
+            self.sin_G0_data.emit(self.__open_torque)
+        else:
+            self.sin_G0_data.emit(0)
+        pass
+
+    def G0_close(self,pressed):
+        if pressed:
+            self.pushButton_16.setEnabled(True)  
+            self.pushButton_14.setEnabled(True)
+            self.sin_G0_data.emit(- self.__open_torque)
+        else:
+            self.sin_G0_data.emit(0)
+ 
 
 
