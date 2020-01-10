@@ -108,7 +108,7 @@ class I100():
         self.__node.controlword = self.__controlword
         pass
 
-    def __opmode_set(self,data):
+    def opmode_set(self,data):
         self.__node.op_mode = data
         while( self.__node.op_mode != data ):
             self.__node.op_mode = data
