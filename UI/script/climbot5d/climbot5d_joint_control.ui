@@ -241,9 +241,9 @@
   <widget class="QLineEdit" name="lineEdit_2">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>280</x>
      <y>90</y>
-     <width>70</width>
+     <width>90</width>
      <height>25</height>
     </rect>
    </property>
@@ -257,9 +257,9 @@
   <widget class="QLineEdit" name="lineEdit_3">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>280</x>
      <y>140</y>
-     <width>70</width>
+     <width>90</width>
      <height>25</height>
     </rect>
    </property>
@@ -273,9 +273,9 @@
   <widget class="QLineEdit" name="lineEdit_4">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>280</x>
      <y>240</y>
-     <width>70</width>
+     <width>90</width>
      <height>25</height>
     </rect>
    </property>
@@ -289,9 +289,9 @@
   <widget class="QLineEdit" name="lineEdit_5">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>280</x>
      <y>190</y>
-     <width>70</width>
+     <width>90</width>
      <height>25</height>
     </rect>
    </property>
@@ -305,9 +305,9 @@
   <widget class="QLineEdit" name="lineEdit_6">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>280</x>
      <y>290</y>
-     <width>70</width>
+     <width>90</width>
      <height>25</height>
     </rect>
    </property>
@@ -386,9 +386,9 @@
   <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
     <rect>
-     <x>300</x>
+     <x>340</x>
      <y>10</y>
-     <width>113</width>
+     <width>80</width>
      <height>25</height>
     </rect>
    </property>
@@ -396,7 +396,7 @@
   <widget class="QPushButton" name="pushButton_11">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>340</x>
      <y>50</y>
      <width>80</width>
      <height>30</height>
@@ -412,9 +412,9 @@
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>210</x>
      <y>10</y>
-     <width>101</width>
+     <width>121</width>
      <height>17</height>
     </rect>
    </property>
@@ -624,12 +624,12 @@
    <slot>change_velocity()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>346</x>
-     <y>57</y>
+     <x>369</x>
+     <y>62</y>
     </hint>
     <hint type="destinationlabel">
-     <x>265</x>
-     <y>55</y>
+     <x>301</x>
+     <y>62</y>
     </hint>
    </hints>
   </connection>

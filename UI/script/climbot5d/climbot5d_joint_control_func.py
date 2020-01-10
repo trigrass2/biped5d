@@ -35,7 +35,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
         super(Climbot5d_joint_control_func,self).__init__(parent)
         self.setupUi(self)
         self.center()
-        self.joint_velocity = 10 * 0.01745  # 10 deg
+        self.velocity = 10 * 0.01745  # 10 deg
 
 
     def center(self):
@@ -54,7 +54,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
         if pressed:
             self.pushButton_2.setEnabled(False)
-            self.sin_I1_data.emit([1,self.joint_velocity])
+            self.sin_I1_data.emit([1,self.velocity])
 
         else:
             self.sin_I1_data.emit([1,0])
@@ -69,7 +69,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
         if pressed:
             self.pushButton_1.setEnabled(False)
-            self.sin_I1_data.emit([1, -self.joint_velocity])
+            self.sin_I1_data.emit([1, -self.velocity])
             pass
 
         else:
@@ -80,7 +80,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T2_add_position(self,pressed):
         if pressed:
             self.pushButton_7.setEnabled(False)
-            self.sin_T2_data.emit([2,self.joint_velocity])
+            self.sin_T2_data.emit([2,self.velocity])
 
         else:
             self.sin_T2_data.emit([2,0])
@@ -90,7 +90,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T2_sub_position(self,pressed):
         if pressed:
             self.pushButton_3.setEnabled(False)
-            self.sin_T2_data.emit([2,-self.joint_velocity])
+            self.sin_T2_data.emit([2,-self.velocity])
         else:
             self.sin_T2_data.emit([2,0])
             self.pushButton_3.setEnabled(True)
@@ -98,7 +98,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T3_add_position(self,pressed):
         if pressed:
             self.pushButton_8.setEnabled(False)
-            self.sin_T3_data.emit([3,self.joint_velocity])
+            self.sin_T3_data.emit([3,self.velocity])
             pass
 
         else:
@@ -109,7 +109,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T3_sub_position(self,pressed):
         if pressed:
             self.pushButton_4.setEnabled(False)
-            self.sin_T3_data.emit([3,-self.joint_velocity])
+            self.sin_T3_data.emit([3,-self.velocity])
             pass
 
         else:
@@ -120,7 +120,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T4_add_position(self,pressed):
         if pressed:
             self.pushButton_9.setEnabled(False)
-            self.sin_T4_data.emit([4,self.joint_velocity])
+            self.sin_T4_data.emit([4,self.velocity])
             pass
 
         else:
@@ -131,7 +131,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
     def T4_sub_position(self,pressed):
         if pressed:
             self.pushButton_5.setEnabled(False)
-            self.sin_T4_data.emit([4,-self.joint_velocity])
+            self.sin_T4_data.emit([4,-self.velocity])
             pass
 
         else:
@@ -143,7 +143,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
         if pressed:
             self.pushButton_10.setEnabled(False)
-            self.sin_I5_data.emit([5,self.joint_velocity])
+            self.sin_I5_data.emit([5,self.velocity])
             pass
 
         else:
@@ -154,7 +154,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
         if pressed:
             self.pushButton_6.setEnabled(False)
-            self.sin_I5_data.emit([5,-self.joint_velocity])
+            self.sin_I5_data.emit([5,-self.velocity])
 
             pass
 
@@ -172,7 +172,7 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
 
     def change_velocity(self):
         '''
-        move the slider to change the joint_velocity.
+        move the slider to change the velocity.
         :param data:
         :return:
         '''
@@ -185,9 +185,6 @@ class Climbot5d_joint_control_func(QWidget,Ui_Climbot5d_joint_control):
             self.velocity = velocity * 0.01745
         else:
             self.velocity = 10 * 0.01745
-        print self.velocity
-
-
 
     def stop(self):
         self.sin_quick_stop.emit()
