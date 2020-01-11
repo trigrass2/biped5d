@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import string
 from math import radians
+from rospkg import RosPack
 
 class Path_process():
     
@@ -149,7 +150,7 @@ class Path_process():
         # print joint_pos
 
     def get_trajectory(self,data):
-        self.__readfile(data)
+        self.__readfile(RosPack().get_path('birl_module_robot') + '/data/' + data)
         self.__get_joint_position()
         self.__get_joint_velocity()
         return self.__joint_pos
